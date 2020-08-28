@@ -17,5 +17,8 @@
   "bugs": {
     "url": "https://github.com/theodorklauritzen/VallerHomework/issues"
   },
-  "homepage": "https://github.com/theodorklauritzen/VallerHomework#readme"
+  "homepage": "https://github.com/theodorklauritzen/VallerHomework#readme",
+  "dependencies": {
+    "openid-client": "^3.15.9"
+  }
 }
