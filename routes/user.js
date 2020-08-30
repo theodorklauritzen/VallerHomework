@@ -7,7 +7,7 @@ router.get('/login', function(req, res, next) {
   const scope = "offline_access%20user.read%20notes.read.all";
   // TODO: Add a state for security
   // See: https://docs.microsoft.com/en-us/graph/auth-v2-user?view=graph-rest-1.0
-  res.redirect(`https://login.microsoftonline.com/${process.env.OATH_TENANT}/oauth2/v2.0/authorize?client_id=${process.env.OAUTH_CLIENT_ID}&response_type=code&redirect_uri=${redirect_url}&response_mode=query&scope=${scope}`);
+  res.redirect(`https://login.microsoftonline.com/${process.env.OAUTH_TENANT}/oauth2/v2.0/authorize?client_id=${process.env.OAUTH_CLIENT_ID}&response_type=code&redirect_uri=${redirect_url}&response_mode=query&scope=${scope}`);
 });
 
 router.get("/oauth/response", (req, res, next) => {
