@@ -123,16 +123,3 @@ router.get("/oauth/response", (req, res, next) => {
 module.exports = router;
 
 // https://youtu.be/n6q8Cm-pTYY
-
-// https://portal.azure.com/#home
-// https://aad.portal.azure.com/
-// https://portal.azure.com/#blade/Microsoft_AAD_RegisteredApps/ApplicationsListBlade
-
-// https://docs.microsoft.com/en-us/graph/onenote-get-content
-// https://docs.microsoft.com/en-us/graph/auth-v2-user?view=graph-rest-1.0
-
-// https://portal.office.com/account/?ref=MeControl#apps
-
-// https://docs.microsoft.com/en-us/azure/active-directory/develop/v2-protocols-oidc
-
-//  docker run --rm -p 80:80 --env PGADMIN_DEFAULT_EMAIL=theodor.k.lauritzen@gmail.com --env PGADMIN_DEFAULT_PASSWORD=admin dpage/pgadmin4
