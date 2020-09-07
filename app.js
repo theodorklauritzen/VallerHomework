@@ -96,7 +96,10 @@ app.use(session({
   secret: 'your_secret_value_here',
   resave: false,
   saveUninitialized: false,
-  unset: 'destroy'
+  unset: 'destroy',
+  cookie: {
+    maxAge: 365 * 24 * 60 * 60 * 1000 // One year
+  }
 }));
 
 // Flash middleware

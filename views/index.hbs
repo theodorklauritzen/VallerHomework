@@ -1,3 +1,13 @@
-<h1>Hei</h1>
+<h1 class="page-header">Valler Lekser</h1>
 
-<a href="/auth/signin">Login</a>
+{{#if user}}
+
+<p>Du er logget inn som {{user.displayName}}</p>
+
+<a href="/homework/calendar"><button type="button" class="btn btn-primary btn-wide">Se klassenotatblokkene</button></a>
+
+{{else}}
+<p>Her kan elever på Valler se fagplaner i klassenotatblokkene.</p>
+
+<a href="/auth/signin"><button type="button" class="btn btn-primary btn-wide">Logg inn</button></a>
+{{/if}}
