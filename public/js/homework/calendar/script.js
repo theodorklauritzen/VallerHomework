@@ -4,9 +4,8 @@ let token = null;
   token = await $.getJSON("./API/getAccessToken");
   let noteCon = $("#notebookContainer")
 
-  let notebooks = await msGraph("/me/onenote/notebooks/getRecentNotebooks(includePersonalNotebooks=false)");
+  let notebooks = await msGraph("/me/onenote/notebooks/getRecentNotebooks(includePersonalNotebooks=false)"); //await msGraph("/me/onenote/notebooks")
   console.log(notebooks)
-  console.log(noteCon)
 
   //noteCon.text(notebooks.value[0]);
 
@@ -14,8 +13,7 @@ let token = null;
     noteCon.text("Du har ingen klassenotatblokker")
   } else {
     for (let i = 0; i < notebooks.value.length; i++) {
-      noteCon.append(`<p>${notebooks.value[i].displayName}</p>`);
-      console.log("hei")
+      noteCon.append(`<p><a href="${notebooks.value[i].links.oneNoteWebUrl.href}">${notebooks.value[i].displayName}</a></p>`);
     }
   }
 })();
