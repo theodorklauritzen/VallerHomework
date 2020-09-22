@@ -1,6 +1,8 @@
 var express = require('express');
 var router = express.Router();
 
+//let pgClient = require('../postgres')
+
 router.use((req, res, next) => {
   if (req.user) {
     next();
