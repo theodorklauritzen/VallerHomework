@@ -16,7 +16,9 @@ router.get("/calendar", (req, res, next) => {
 })
 
 router.get('/API/getAccessToken', function(req, res, next) {
-  // NOTE: maybe it needs to be refreshed.
+  // NOTE: maybe it needs to be refreshed. SEE: https://docs.microsoft.com/en-us/graph/tutorials/node?tutorial-step=3
+
+
   res.send({
     access_token: req.user.oauthToken.token.access_token,
     token_type: req.user.oauthToken.token.token_type,

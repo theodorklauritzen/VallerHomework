@@ -28,9 +28,12 @@ const pgPool = new Pool({
 
 // Passport calls serializeUser and deserializeUser to
 // manage users
-passport.serializeUser(async function(user, done) {
-  // Use the OID property of the user as a key
+
+async function storeUser(user) {
   console.log(user)
+  console.log(user.oauthToken.__proto__)
+  console.log(user.oauthToken)
+  console.log(JSON.stringify(user.oauthToken))
 
   let userData = []
   userData.push(user.profile.oid)
@@ -39,10 +42,14 @@ passport.serializeUser(async function(user, done) {
 
   try {
     const res = await pgPool.query('INSERT INTO users(ms_oid, displayname, refresh_token) VALUES($1, $2, $3)', userData)
-    done(null, user.profile.oid);
   } catch (err) {
     console.log(err)
   }
+}
+
+passport.serializeUser(async function(user, done) {
+  // Use the OID property of the user as a key
+  done(null, user.profile.oid);
 });
 
 passport.deserializeUser(async function(id, done) {
@@ -52,7 +59,10 @@ passport.deserializeUser(async function(id, done) {
     let user = {
       profile: {},
       oauthToken: {
-        token: {}
+        token: {
+          token_type: 'Bearer',
+          scope: process.env.OAUTH_SCOPES,
+        }
       }
     }
 
@@ -101,8 +111,9 @@ async function signInComplete(iss, sub, profile, accessToken, refreshToken, para
   let oauthToken = oauth2.accessToken.create(params);
 
   // Save the profile and tokens in user storage
-  users[profile.oid] = { profile, oauthToken };
-  return done(null, users[profile.oid]);
+  let user = {profile, oauthToken};
+  storeUser(user);
+  return done(null, user);
 }
 
 // Configure OIDC strategy
