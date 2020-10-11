@@ -26,22 +26,44 @@ const pgPool = new Pool({
 
 // Configure passport
 
-// In-memory storage of logged-in users
-// For demo purposes only, production apps should store
-// this in a reliable storage
-var users = {};
-
 // Passport calls serializeUser and deserializeUser to
 // manage users
-passport.serializeUser(function(user, done) {
+passport.serializeUser(async function(user, done) {
   // Use the OID property of the user as a key
   console.log(user)
-  users[user.profile.oid] = user;
-  done (null, user.profile.oid);
+
+  let userData = []
+  userData.push(user.profile.oid)
+  userData.push(user.profile.displayName)
+  userData.push(user.oauthToken.token.refresh_token)
+
+  try {
+    const res = await pgPool.query('INSERT INTO users(ms_oid, displayname, refresh_token) VALUES($1, $2, $3)', userData)
+    done(null, user.profile.oid);
+  } catch (err) {
+    console.log(err)
+  }
 });
 
-passport.deserializeUser(function(id, done) {
-  done(null, users[id]);
+passport.deserializeUser(async function(id, done) {
+  try {
+    const res = await pgPool.query('SELECT * FROM users WHERE ms_oid = ($1)', [id])
+
+    let user = {
+      profile: {},
+      oauthToken: {
+        token: {}
+      }
+    }
+
+    user.profile["oid"] = res.rows[0].ms_oid
+    user.profile["displayName"] = res.rows[0].displayname
+    user.oauthToken.token["refresh_token"] = res.rows[0].refresh_token
+
+    done(null, user);
+  } catch (err) {
+    console.log(err)
+  }
 });
 
 // Configure simple-oauth2
