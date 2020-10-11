@@ -6,9 +6,23 @@ var logger = require('morgan');
 var session = require('express-session');
 var flash = require('connect-flash');
 var graph = require('./graph');
+const { Pool, Client } = require('pg')
+const pgSession = require('connect-pg-simple')(session);
 
 var passport = require('passport');
 var OIDCStrategy = require('passport-azure-ad').OIDCStrategy;
+
+// Connect to the databse
+// NOTE: This is a quick fix, this has to be refactured due to security.
+process.env["NODE_TLS_REJECT_UNAUTHORIZED"] = 0;
+const pgPool = new Pool({
+ user: process.env.PGUSER,
+ host: process.env.PGHOST,
+ database: process.env.PGDATABASE,
+ password: process.env.PGPASSWORD,
+ port: process.env.PGPORT,
+ ssl: true
+});
 
 // Configure passport
 
@@ -21,6 +35,7 @@ var users = {};
 // manage users
 passport.serializeUser(function(user, done) {
   // Use the OID property of the user as a key
+  console.log(user)
   users[user.profile.oid] = user;
   done (null, user.profile.oid);
 });
@@ -90,9 +105,11 @@ var indexRouter = require('./routes/index');
 var app = express();
 
 // Session middleware
-// NOTE: Uses default in-memory session store, which is not
-// suitable for production
 app.use(session({
+  store: new pgSession({
+    pool : pgPool,                // Connection pool
+    tableName : 'session'   // Use another table-name than the default "session" one
+  }),
   secret: 'your_secret_value_here',
   resave: false,
   saveUninitialized: false,
