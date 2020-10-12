@@ -28,9 +28,10 @@ const pgPool = new Pool({
 
 // Passport calls serializeUser and deserializeUser to
 // manage users
+let users = {}
 
 async function storeUser(user) {
-  console.log(user)
+  /*console.log(user)
   console.log(user.oauthToken.__proto__)
   console.log(user.oauthToken)
   console.log(JSON.stringify(user.oauthToken))
@@ -44,7 +45,8 @@ async function storeUser(user) {
     const res = await pgPool.query('INSERT INTO users(ms_oid, displayname, refresh_token) VALUES($1, $2, $3)', userData)
   } catch (err) {
     console.log(err)
-  }
+  }*/
+  users[user.profile.oid] = user
 }
 
 passport.serializeUser(async function(user, done) {
@@ -53,7 +55,7 @@ passport.serializeUser(async function(user, done) {
 });
 
 passport.deserializeUser(async function(id, done) {
-  try {
+  /*try {
     const res = await pgPool.query('SELECT * FROM users WHERE ms_oid = ($1)', [id])
 
     let user = {
@@ -73,7 +75,8 @@ passport.deserializeUser(async function(id, done) {
     done(null, user);
   } catch (err) {
     console.log(err)
-  }
+  }*/
+  done(null, users[id])
 });
 
 // Configure simple-oauth2
@@ -139,10 +142,10 @@ var app = express();
 
 // Session middleware
 app.use(session({
-  store: new pgSession({
+  /*store: new pgSession({
     pool : pgPool,                // Connection pool
     tableName : 'session'   // Use another table-name than the default "session" one
-  }),
+  }),*/
   secret: 'your_secret_value_here',
   resave: false,
   saveUninitialized: false,
