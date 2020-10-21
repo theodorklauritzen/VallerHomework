@@ -15,7 +15,7 @@ module.exports = {
         }
 
         // Token still valid, just return it
-        return storedToken.token.access_token;
+        return storedToken.token;
       }
     }
   }
