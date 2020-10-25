@@ -3,20 +3,56 @@ let a = null;
 
 (async function() {
   token = await $.getJSON("./API/getAccessToken");
-  let noteCon = $("#notebookContainer")
+  //let noteCon = document.getElementById("notebookContainer")
 
   //let notebooks = await msGraph("/me/onenote/notebooks/getRecentNotebooks(includePersonalNotebooks=false)"); //await msGraph("/me/onenote/notebooks")
   //console.log(notebooks)
 
-  //console.log(await msGraph("/sites/Fysikk2A-VGVALL/sites/Fysikk2A-VGVALL/onenote"))
+  const sites = [
+    "Fysikk2A-VGVALL",
+    "Religion3STG-VGVALL"
+  ]
 
-  // await msGraph("/sites/vikenfk.sharepoint.com:/sites/Fysikk2A-VGVALL")
-  // await msGraph("/sites/vikenfk.sharepoint.com,d32001dd-96d6-423d-b737-9e166c4de241,a884fd09-4727-40dd-8e45-50ebe30f7514/onenote/notebooks")
-  // await msGraph("/sites/vikenfk.sharepoint.com,d32001dd-96d6-423d-b737-9e166c4de241,a884fd09-4727-40dd-8e45-50ebe30f7514/onenote/notebooks/1-e6943f35-e91e-401f-83d5-55faad5c9cf8/sections")
-  // await msGraph("/sites/vikenfk.sharepoint.com,d32001dd-96d6-423d-b737-9e166c4de241,a884fd09-4727-40dd-8e45-50ebe30f7514/onenote/sections/1-ed36867c-cf3e-420c-8995-8175512a642c/pages")
-  // await msGraph("/sites/vikenfk.sharepoint.com,d32001dd-96d6-423d-b737-9e166c4de241,a884fd09-4727-40dd-8e45-50ebe30f7514/onenote/pages/1-47636a582fa741efb9d2c8acfc038694!23-ed36867c-cf3e-420c-8995-8175512a642c/content")
+  // TODO: Loading animation
 
-  let content = await getNotebook("Fysikk2A-VGVALL")
+  // TODO: add a week swticher
+  const weekNumber = getWeekNumber(new Date())
+
+  let notebooksP = []
+  for (site of sites) {
+    notebooksP.push(getNotebook(site))
+  }
+  let notebooks = await Promise.all(notebooksP)
+
+  let tables = []
+  for (notebook of notebooks) {
+    tables.push(await findTable(notebook.content))
+  }
+
+  let subjects = []
+  for (let i = 0; i < tables.length; i++) {
+    subjects.push({
+      site: notebooks[i].site,
+      plan: await extractPlan(tables[i])
+    })
+  }
+
+  console.log(subjects)
+
+  let noteTable = document.getElementById("noteTable")
+  let tableBody = noteTable.children[1]
+
+  for (subject of subjects) {
+    let name = subject.site.displayName
+    for (lesson of subject.plan) {
+      if (lesson.week == weekNumber) {
+        tableBody.appendChild(createDOMRow(name, lesson))
+      }
+    }
+  }
+
+
+  /*let content = await getNotebook("Fysikk2A-VGVALL")
   console.log("loaded content")
   let table = await findTable(content)
   a = table
@@ -29,7 +65,7 @@ let a = null;
     if (lesson.week == currentWeek) {
       noteCon.append(`<div><p>${lesson.weekDay} | ${lesson.homework}</p></div>`)
     }
-  }
+  }*/
 
   //let table = template.querySelectorAll("table")
 
@@ -49,6 +85,20 @@ let a = null;
 
 
 })();
+
+function createDOMRow(lessonName, data) {
+  let tRow = document.createElement('tr')
+
+  let col1 = document.createElement('th')
+  col1.innerHTML = lessonName
+  tRow.appendChild(col1)
+
+  let col2 = document.createElement('th')
+  col2.innerHTML = data.homework
+  tRow.appendChild(col2)
+
+  return tRow
+}
 
 // https://stackoverflow.com/questions/6117814/get-week-of-year-in-javascript-like-in-php
 function getWeekNumber(d) {
@@ -123,7 +173,7 @@ async function getNotebook(id) {
   let pages = await msGraph(`/sites/${site.id}/onenote/sections/${sections.value[0].id}/pages`)
   let content = await msGraph(`/sites/${site.id}/onenote/pages/${pages.value[0].id}/content`)
 
-  return content
+  return {site, content}
 }
 
 async function msGraph(url, method) {
