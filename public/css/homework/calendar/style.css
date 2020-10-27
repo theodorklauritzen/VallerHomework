@@ -1,0 +1,16 @@
+.week {
+  padding-top: 15px;
+}
+
+.day {
+  padding-left: 5px;
+  padding-top: 10px;
+}
+
+.lesson {
+  padding-left: 5px;
+}
+
+.lessonInfo {
+  margin-top: 7px;
+}

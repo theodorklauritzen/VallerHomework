@@ -1,22 +1,16 @@
 let token = null;
-let a = null;
 
-(async function() {
+const sites = [
+  "Fysikk2A-VGVALL",
+  "Religion3STG-VGVALL"
+]
+
+let currWeek = getWeekNumber(new Date())
+
+window.onload = async function() {
   token = await $.getJSON("./API/getAccessToken");
-  //let noteCon = document.getElementById("notebookContainer")
-
-  //let notebooks = await msGraph("/me/onenote/notebooks/getRecentNotebooks(includePersonalNotebooks=false)"); //await msGraph("/me/onenote/notebooks")
-  //console.log(notebooks)
-
-  const sites = [
-    "Fysikk2A-VGVALL",
-    "Religion3STG-VGVALL"
-  ]
 
   // TODO: Loading animation
-
-  // TODO: add a week swticher
-  const weekNumber = getWeekNumber(new Date())
 
   let notebooksP = []
   for (site of sites) {
@@ -37,67 +31,105 @@ let a = null;
     })
   }
 
-  console.log(subjects)
+  let container = document.getElementById("hContainer")
 
-  let noteTable = document.getElementById("noteTable")
-  let tableBody = noteTable.children[1]
+  function displayWeek(week) {
+    currWeek = week
+    if (currWeek > 53) {
+      currWeek = 1
+    } else if (currWeek < 1) {
+      currWeek = 53
+    }
+    container.innerHTML = "";
+    let weekDOM = createWeekDOM(currWeek, subjects)
+    container.appendChild(weekDOM)
+  }
 
-  for (subject of subjects) {
-    let name = subject.site.displayName
-    for (lesson of subject.plan) {
-      if (lesson.week == weekNumber) {
-        tableBody.appendChild(createDOMRow(name, lesson))
+  displayWeek(currWeek);
+
+  swipedetect(container, dir => {
+    displayWeek(currWeek + dir);
+  })
+
+  document.onkeydown = function(e) {
+    if (e.keyCode == '37') {
+       // left arrow
+       displayWeek(currWeek - 1);
+    }
+    else if (e.keyCode == '39') {
+       // right arrow
+       displayWeek(currWeek + 1);
+    }
+  }
+}
+
+function createWeekDOM(week, subjects) {
+  let day = {
+    "man": DOMcreateDay("Mandag"),
+    "tir": DOMcreateDay("Tirsdag"),
+    "ons": DOMcreateDay("Onsdag"),
+    "tor": DOMcreateDay("Torsdag"),
+    "fre": DOMcreateDay("Fredag")
+  };
+
+  for (let s of subjects) {
+    for (let l of s.plan) {
+      if (l.week == week) {
+        let lesson = DOMcreateLesson(s.site.displayName, l);
+        let key = l.weekDay.trim().toLowerCase()
+        if (key.length == 3) {
+          day[key].appendChild(lesson)
+        }
       }
     }
   }
 
+  let ret = DOMcreateWeek(week);
 
-  /*let content = await getNotebook("Fysikk2A-VGVALL")
-  console.log("loaded content")
-  let table = await findTable(content)
-  a = table
-  console.log(table)
-  let plan = await extractPlan(table)
-  console.log(plan)
+  for (const [key, value] of Object.entries(day)) {
+    ret.appendChild(value)
+  }
 
-  const currentWeek = getWeekNumber(new Date())
-  for (lesson of plan) {
-    if (lesson.week == currentWeek) {
-      noteCon.append(`<div><p>${lesson.weekDay} | ${lesson.homework}</p></div>`)
-    }
-  }*/
+  return ret
+}
 
-  //let table = template.querySelectorAll("table")
+function DOMcreateWeek(week) {
+  let ret = document.createElement("div")
+  ret.classList.add("week")
+  //ret.id = "W" + week
 
-  //console.log(template)
+  let weekHeading = document.createElement("h3")
+  weekHeading.innerHTML = "Uke " + week
+  ret.appendChild(weekHeading)
 
-  //noteCon.html(content)
+  return ret
+}
 
-  //noteCon.text(notebooks.value[0]);
+function DOMcreateDay(day) {
+  let ret = document.createElement("div")
+  ret.classList.add("day")
+  ret.innerHTML = `<h5>${day}</h5><hr>`
 
-  /*if (notebooks.value.length == 0) {
-    noteCon.text("Du har ingen klassenotatblokker")
-  } else {
-    for (let i = 0; i < notebooks.value.length; i++) {
-      noteCon.append(`<p><a href="${notebooks.value[i].links.oneNoteWebUrl.href}">${notebooks.value[i].displayName}</a></p>`);
-    }
-  }*/
+  return ret
+}
 
+function DOMcreateLesson(name, lesson) {
+  let ret = document.createElement("div")
+  ret.classList.add("lesson")
 
-})();
+  function addContent(content) {
+    let elm = document.createElement("div")
+    elm.classList.add("lessonInfo")
+    elm.innerHTML = content
 
-function createDOMRow(lessonName, data) {
-  let tRow = document.createElement('tr')
+    ret.appendChild(elm)
+  }
 
-  let col1 = document.createElement('th')
-  col1.innerHTML = lessonName
-  tRow.appendChild(col1)
+  addContent(`<strong>${name}</strong>`);
+  addContent(lesson.activity);
+  addContent(lesson.homework);
 
-  let col2 = document.createElement('th')
-  col2.innerHTML = data.homework
-  tRow.appendChild(col2)
-
-  return tRow
+  return ret
 }
 
 // https://stackoverflow.com/questions/6117814/get-week-of-year-in-javascript-like-in-php
@@ -113,6 +145,21 @@ function getWeekNumber(d) {
     var weekNo = Math.ceil(( ( (d - yearStart) / 86400000) + 1)/7);
     // Return array of year and week number
     return weekNo;
+}
+
+// TODO: This must be refactured
+function dateFromWeek(w) {
+  let y = 2020 //new Date().getFullYear()
+  if (w < 30) y++
+
+  var simple = new Date(y, 0, 1 + (w - 1) * 7);
+  var dow = simple.getDay();
+  var ISOweekStart = simple;
+  if (dow <= 4)
+      ISOweekStart.setDate(simple.getDate() - simple.getDay() + 1);
+  else
+      ISOweekStart.setDate(simple.getDate() + 8 - simple.getDay());
+  return ISOweekStart;
 }
 
 async function extractPlan(table) {
